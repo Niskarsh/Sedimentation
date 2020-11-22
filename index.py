@@ -150,12 +150,13 @@ def startSimulation():
 	global run, time, time_passed
 	run=True
 	while(run):
-		time = time + 1
+		time = time + .1
+		t = str(time)
 		time_passed.grid_forget()
-		time_passed = Label(simulation_frame, text="Time passed : " + str(time))
+		time_passed = Label(simulation_frame, text="Time passed : " + str(t[0:t.index(".")+1]+t[t.index(".")+1:t.index(".")+2]))
 		time_passed.grid(row=4, column=0, padx=5, pady=(5, 0), columnspan=2, sticky=W)
 		root.update()
-		tm.sleep(1)
+		tm.sleep(.1)
 
 
 
