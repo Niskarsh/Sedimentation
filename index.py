@@ -1,13 +1,15 @@
 from tkinter import *
-import os
+import time as tm
 
 # Initialising main window
 root = Tk()
 root.resizable(0, 0)
 
-global speedEntry, distanceEntry, materialDensity, mediumDensity, time, s_label, d_label
+global speedEntry, distanceEntry, materialDensity, mediumDensity, mediumViscosity, time, s_label, d_label, start_button, pause_button, stop_button 
 
-speedEntry, distanceEntry, time, materialDensity, mediumDensity = 1, 0, 0, 0, 0
+speedEntry, distanceEntry, time, materialDensity, mediumDensity, mediumViscosity = 1, 0, 0, 0, 0, 0
+
+run=False
 
 # Adding title to main window
 root.title('MSE659A Python Project')
@@ -27,12 +29,18 @@ simulation_frame = LabelFrame(window_frame, text="Simulation")
 sp = Label(simulation_frame, text="Selected Parameters")
 s_label = Label(simulation_frame, text="Speed : " + str(speedEntry) + "x", width=15, anchor=W)
 d_label = Label(simulation_frame, text="Distance Mapped : " + str(distanceEntry), width=25, anchor=E)
+mt_label = Label(simulation_frame, text="Material Density : " + str(materialDensity), width=25, anchor=W)
+md_label = Label(simulation_frame, text="Medium Density : " + str(mediumDensity), width=25, anchor=E)
+v_label = Label(simulation_frame, text="Medium Viscosity : " + str(mediumViscosity), width=25, anchor=W)
 time_passed = Label(simulation_frame, text="Time passed : " + str(time))
 
 sp.grid(row=0, column=0, columnspan=2)
 s_label.grid(row=1, column=0, padx=(5, 5), columnspan=1, sticky=W)
 d_label.grid(row=1, column=1, padx=(5, 5), columnspan=1, sticky=E)
-time_passed.grid(row=2, column=0, padx=5, columnspan=2, sticky=W)
+mt_label.grid(row=2, column=0, padx=(5, 5), pady=(5, 0), columnspan=1, sticky=W)
+md_label.grid(row=2, column=1, padx=(5, 5), pady=(5, 0), columnspan=1, sticky=E)
+v_label.grid(row=3, column=0, padx=(5, 5), pady=(5, 0), columnspan=1, sticky=W)
+time_passed.grid(row=4, column=0, padx=5, pady=(5, 0), columnspan=2, sticky=W)
 
 # Frame holding the section that takes input
 control_frame = LabelFrame(window_frame, text="Controls")
@@ -79,6 +87,8 @@ distance_frame.grid(row=1, column=0, padx=10, pady=(5, 10), sticky=E)
 # Material Density Frame
 def setMaterialDensity(density):
 	materialDensity = density
+	mt_label = Label(simulation_frame, text="Material Density : " + str(materialDensity), width=25, anchor=W)
+	mt_label.grid(row=2, column=0, padx=(5, 5), pady=(5, 0), columnspan=1, sticky=W)
 	
 materialDensity_frame = Frame(control_frame)
 materialDensity_label = Label(materialDensity_frame, text="Material Density: ")
@@ -96,7 +106,9 @@ materialDensity_frame.grid(row=2, column=0, padx=10, pady=(5, 10), sticky=E)
 # Medium Density Frame
 def setMediumDensity(density):
 	mediumDensity = density
-	
+	md_label = Label(simulation_frame, text="Medium Density : " + str(mediumDensity), width=25, anchor=E)
+	md_label.grid(row=2, column=1, padx=(5, 5), pady=(5, 0), columnspan=1, sticky=E)
+
 mediumDensity_frame = Frame(control_frame)
 mediumDensity_label = Label(mediumDensity_frame, text="Medium Density: ")
 mediumDensity = Entry(mediumDensity_frame, width=30)
@@ -113,6 +125,8 @@ mediumDensity_frame.grid(row=3, column=0, padx=10, pady=(5, 10), sticky=E)
 # Medium Viscosity Frame
 def setMediumViscosity(viscosity):
 	mediumViscosity = viscosity
+	v_label = Label(simulation_frame, text="Medium Viscosity : " + str(mediumViscosity), width=25, anchor=W)
+	v_label.grid(row=3, column=0, padx=(5, 5), pady=(5, 0), columnspan=1, sticky=W)
 	
 mediumViscosity_frame = Frame(control_frame)
 mediumViscosity_label = Label(mediumViscosity_frame, text="Medium Viscosity: ")
@@ -126,6 +140,77 @@ mediumViscosity.grid(row=0, column=1)
 b_mediumViscosity.grid(row=1, column=1, sticky=E, pady=(5, 0))
 
 mediumViscosity_frame.grid(row=4, column=0, padx=10, pady=(5, 10), sticky=E)
+
+# Buttons
+
+control_buttons_frame = Frame(control_frame)
+
+def startSimulation():
+	root.update()
+	global run, time, time_passed
+	run=True
+	while(run):
+		time = time + 1
+		time_passed.grid_forget()
+		time_passed = Label(simulation_frame, text="Time passed : " + str(time))
+		time_passed.grid(row=4, column=0, padx=5, pady=(5, 0), columnspan=2, sticky=W)
+		root.update()
+		tm.sleep(1)
+
+
+
+def start():
+	global start_button
+	start_button.grid_forget()
+	start_button = Button(control_buttons_frame, text="Start", command=start, state=DISABLED)
+	pause_button = Button(control_buttons_frame, text="Pause", command=pause, state=NORMAL)
+	stop_button = Button(control_buttons_frame, text="Stop", command=stop, state=NORMAL)
+	
+	start_button.grid(row=0, column=0)
+	pause_button.grid(row=0, column=1)
+	stop_button.grid(row=0, column=2)
+	
+	startSimulation()
+
+def pause():
+	global run, start_button
+	start_button.grid_forget()
+	start_button = Button(control_buttons_frame, text="Resume", command=start, state=NORMAL)
+	pause_button = Button(control_buttons_frame, text="Pause", command=pause, state=DISABLED)
+	stop_button = Button(control_buttons_frame, text="Stop", command=stop, state=NORMAL)
+	
+	start_button.grid(row=0, column=0)
+	pause_button.grid(row=0, column=1)
+	stop_button.grid(row=0, column=2)
+	run=False
+
+def stop():
+	global run, time, start_button, time_passed
+	start_button.grid_forget()
+	start_button = Button(control_buttons_frame, text="Start", command=start, state=NORMAL)
+	pause_button = Button(control_buttons_frame, text="Pause", command=pause, state=DISABLED)
+	stop_button = Button(control_buttons_frame, text="Stop", command=stop, state=DISABLED)
+	
+	start_button.grid(row=0, column=0)
+	pause_button.grid(row=0, column=1)
+	stop_button.grid(row=0, column=2)
+	run=False
+	time=0
+	time_passed.grid_forget()
+	time_passed = Label(simulation_frame, text="Time passed : " + str(time))
+	time_passed.grid(row=4, column=0, padx=5, pady=(5, 0), columnspan=2, sticky=W)
+
+start_button = Button(control_buttons_frame, text="Start",  state=NORMAL, command=start)
+pause_button = Button(control_buttons_frame, text="Pause", state=DISABLED, command=pause)
+stop_button = Button(control_buttons_frame, text="Stop", state=DISABLED, command=stop)
+
+start_button.grid(row=0, column=0)
+pause_button.grid(row=0, column=1)
+stop_button.grid(row=0, column=2)
+
+control_buttons_frame.grid(row=5, column=0, padx=10, pady=(5, 10))
+
+
 
 # Packing component frames in window
 title_frame.grid(row=0, column=0, columnspan=2, pady=(10, 5))
