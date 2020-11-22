@@ -34,6 +34,14 @@ md_label = Label(simulation_frame, text="Medium Density : " + str(mediumDensity)
 v_label = Label(simulation_frame, text="Medium Viscosity : " + str(mediumViscosity), width=25, anchor=W)
 time_passed = Label(simulation_frame, text="Time passed : " + str(time))
 
+def drawCanvas(canvas):
+	global m1
+	canvas.create_rectangle(125, 264, 290, 30, width=3, outline="#3c5396", fill="#b8c9fc")
+	m1 = canvas.create_oval(128, 33, 138, 43, fill="red")	
+
+canvas = Canvas(simulation_frame, bg="white")
+drawCanvas(canvas)
+
 sp.grid(row=0, column=0, columnspan=2)
 s_label.grid(row=1, column=0, padx=(5, 5), columnspan=1, sticky=W)
 d_label.grid(row=1, column=1, padx=(5, 5), columnspan=1, sticky=E)
@@ -41,7 +49,7 @@ mt_label.grid(row=2, column=0, padx=(5, 5), pady=(5, 0), columnspan=1, sticky=W)
 md_label.grid(row=2, column=1, padx=(5, 5), pady=(5, 0), columnspan=1, sticky=E)
 v_label.grid(row=3, column=0, padx=(5, 5), pady=(5, 0), columnspan=1, sticky=W)
 time_passed.grid(row=4, column=0, padx=5, pady=(5, 0), columnspan=2, sticky=W)
-
+canvas.grid(row=5, column=0, padx=5, pady=(5, 0), columnspan=2, sticky=W+E)
 # Frame holding the section that takes input
 control_frame = LabelFrame(window_frame, text="Controls")
 
@@ -147,10 +155,11 @@ control_buttons_frame = Frame(control_frame)
 
 def startSimulation():
 	root.update()
-	global run, time, time_passed
+	global run, time, time_passed, canvas, m1
 	run=True
 	while(run):
 		time = time + .1
+		canvas.move(m1, 0, 1)
 		t = str(time)
 		time_passed.grid_forget()
 		time_passed = Label(simulation_frame, text="Time passed : " + str(t[0:t.index(".")+1]+t[t.index(".")+1:t.index(".")+2]))
@@ -186,7 +195,7 @@ def pause():
 	run=False
 
 def stop():
-	global run, time, start_button, time_passed
+	global run, time, start_button, time_passed, canvas
 	start_button.grid_forget()
 	start_button = Button(control_buttons_frame, text="Start", command=start, state=NORMAL)
 	pause_button = Button(control_buttons_frame, text="Pause", command=pause, state=DISABLED)
@@ -200,6 +209,10 @@ def stop():
 	time_passed.grid_forget()
 	time_passed = Label(simulation_frame, text="Time passed : " + str(time))
 	time_passed.grid(row=4, column=0, padx=5, pady=(5, 0), columnspan=2, sticky=W)
+
+	canvas = Canvas(simulation_frame, bg="white")
+	drawCanvas(canvas)
+	canvas.grid(row=5, column=0, padx=5, pady=(5, 0), columnspan=2, sticky=W+E)
 
 start_button = Button(control_buttons_frame, text="Start",  state=NORMAL, command=start)
 pause_button = Button(control_buttons_frame, text="Pause", state=DISABLED, command=pause)
