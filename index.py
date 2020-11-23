@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import messagebox
+from colour import Color
 import time as tm
 
 # Initialising main window
@@ -8,7 +9,7 @@ root.resizable(0, 0)
 
 global speedEntry, distanceEntry, materialDensityEntry, mediumDensityEntry, mediumViscosityEntry, time, s_label, d_label, start_button, pause_button, stop_button 
 
-speedEntry, distanceEntry, time, materialDensityEntry, mediumDensityEntry, mediumViscosityEntry = 1, 0.0, 0.0, 0.0, 0.0, 0.0
+speedEntry, distanceEntry, time, materialDensityEntry, mediumDensityEntry, mediumViscosityEntry, distanceMapParameter = 1, 328.0, 0.0, 0.0, 0.0, 0.0, 1.0
 sizeRange = [0.0, 0.0]
 
 run=False
@@ -34,15 +35,15 @@ d_label = Label(simulation_frame, text="Distance Mapped : " + str(distanceEntry)
 mt_label = Label(simulation_frame, text="Material Density : " + str(materialDensityEntry), width=25, anchor=W)
 md_label = Label(simulation_frame, text="Medium Density : " + str(mediumDensityEntry), width=25, anchor=E)
 v_label = Label(simulation_frame, text="Medium Viscosity : " + str(mediumViscosityEntry), width=25, anchor=W)
-sz_label = Label(simulation_frame, text="Size range : " + str(sizeRange[0])+ "μm to " + str(sizeRange[1]) + "μm", width=25, anchor=E)
+sz_label = Label(simulation_frame, text="Size range : " + str(sizeRange[0])+ "μ to " + str(sizeRange[len(sizeRange)-1]) + "μ", width=25, anchor=E)
 time_passed = Label(simulation_frame, text="Time passed : " + str(time))
 
 def drawCanvas(canvas):
 	global m1, m
 	canvas.create_rectangle(125, 358, 290, 30, width=3, outline="#3c5396", fill="#b8c9fc")
-	m1 = canvas.create_oval(128, 33, 138, 43, fill="red")
+	# m1 = canvas.create_oval(128, 33, 138, 43, fill="red")
 	# (m1, a, v, reached, x1, y1, x2, y2, fill)
-	m = [(m1, 0.0, 0.0, sizeRange[0], False, 128, 33, 138, 43, "red")]
+	# m = [(m1, 0.0, 0.0, sizeRange[0], False, 128, 33, 138, 43, "red")]
 
 canvas = Canvas(simulation_frame, bg="white", height=360)
 drawCanvas(canvas)
@@ -70,9 +71,9 @@ def setSpeed(speed):
 speed_frame = Frame(control_frame)
 speed_label = Label(speed_frame, text="Speed: ")
 speed = Entry(speed_frame, width=30)
-b_speed = Button(speed_frame, text="Set Speed", command=lambda:setSpeed(speed.get()))
+b_speed = Button(speed_frame, text="Set Speed", command=lambda:setSpeed(speed.get()), state=DISABLED)
 
-speed.insert(0, "eg: 1x")
+speed.insert(0, "1x")
 
 speed_label.grid(row=0, column=0)
 speed.grid(row=0, column=1, sticky=E)
@@ -82,8 +83,9 @@ speed_frame.grid(row=0, column=0, padx=10, pady=(10, 5), sticky=E)
 
 # Distance Frame
 def setMapping(distance):
-	global distanceEntry
+	global distanceEntry, distanceMapParameter
 	distanceEntry = float(distance)
+	distanceMapParameter = 328/distanceEntry
 	d_label = Label(simulation_frame, text="Distance Mapped : " + str(distanceEntry), width=25, anchor=E)
 	d_label.grid(row=1, column=1, padx=(5, 5), columnspan=1, sticky=E)
 
@@ -92,7 +94,7 @@ distance_label = Label(distance_frame, text="Distance to be mapped: ")
 distance = Entry(distance_frame, width=30)
 b_distance = Button(distance_frame, text="Map Distance", command=lambda:setMapping(distance.get()))
 
-# distance.insert(0, "eg: 1x")
+distance.insert(0, "Default mapping: 328m to 328px")
 
 distance_label.grid(row=0, column=0)
 distance.grid(row=0, column=1)
@@ -162,11 +164,23 @@ mediumViscosity_frame.grid(row=4, column=0, padx=10, pady=(5, 10), sticky=E)
 
 # Particle size range Frame
 def setSizeRange(r1, r2):
-	global sizeRange, m
-	sizeRange = [float(r1), float(r2)]
-	for index, (shape, a, v, size, reached, x1, y1, x2, y2, fill) in enumerate(m):
-		m[index] = (shape, a, v, sizeRange[0], reached, x1, y1, x2, y2, fill)
-	sz_label = Label(simulation_frame, text="Size range : " + str(sizeRange[0])+ "μm to " + str(sizeRange[1]) + "μm", width=25, anchor=E)
+	global sizeRange, m, canvas
+	r1, r2 = float(r1), float(r2)
+	
+	blue = Color("#fffac7")
+	colors = list(blue.range_to(Color("#c75300"),16))
+	
+	sizeRange = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+	m = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+	for i in range(16):
+		sizeRange[i] = r1 + (i)*(r2-r1)/15
+		ml = canvas.create_oval(128+10*i, 33, 138+10*i, 43, fill=colors[i].hex)
+		m[i] = (ml, 0.0, 0.0, sizeRange[i], False, False, 128+10*i, 33, 138+10*i, 43, 43, colors[i].hex)
+
+	print(sizeRange)
+	# for index, (shape, a, v, size, reached, x1, y1, x2, y2, fill) in enumerate(m):
+	# 	m[index] = (shape, a, v, sizeRange[0], reached, x1, y1, x2, y2, fill)
+	sz_label = Label(simulation_frame, text="Size range : " + str(sizeRange[0])+ "m to " + str(sizeRange[len(sizeRange)-1]) + "m", width=25, anchor=E)
 	sz_label.grid(row=3, column=1, padx=(5, 5), pady=(5, 0), columnspan=1, sticky=E)
 	
 sizeRange_frame = Frame(control_frame)
@@ -190,22 +204,58 @@ sizeRange_frame.grid(row=5, column=0, padx=10, pady=(5, 10), sticky=E)
 
 control_buttons_frame = Frame(control_frame)
 
+
+def allStopped():
+	global m
+	stop = True
+	for index, (shape, a, v, size, reached, stopped, x1, y1, x2, y2, y, fill) in enumerate(m):
+		if not(stopped):
+			stop = False
+
+	return stop
+
+
 def calculateNextMove():
-	global time, time_passed, canvas, m1, m, mediumDensityEntry, materialDensityEntry, mediumViscosityEntry
+	global time, time_passed, canvas, m1, m, mediumDensityEntry, materialDensityEntry, mediumViscosityEntry, distanceMapParameter
 	# m = [(0, 0, False, 128, 33, 138, 43, "red")]
-	for index, (shape, a, v, size, reached, x1, y1, x2, y2, fill) in enumerate(m):
+	increment = 0
+	if allStopped():
+		pause()
+		return
+
+	for index, (shape, a, v, size, reached, stopped, x1, y1, x2, y2, y, fill) in enumerate(m):
 		if reached:
-			canvas.move(shape, 0, v*.1)
+			increment = v*.1*distanceMapParameter
+			if (y + increment > 358):
+				increment = 358 - y
+				a = 0
+				v = 0
+				stopped = True
+			m[index] = (shape, a, v, size, reached, stopped, x1, y1, x2, y2, y+increment, fill)	
+			canvas.move(shape, 0, increment)
+			print("acc "+str(a)+" vel "+ str(v))
 		else:
 			a  = 9.8 - ((9.8*mediumDensityEntry)/materialDensityEntry) - ((18*v*mediumViscosityEntry)/(materialDensityEntry*size*size))
 			if a>0:
 				v = v + a*.1
-				m[index] = (shape, a, v, size, reached, x1, y1, x2, y2, fill)
-				canvas.move(shape, 0, v*.1)
+				increment = v*.1*distanceMapParameter
+				if (y + increment > 358):
+					increment = 358 - y
+					a = 0
+					v = 0
+					stopped = True
+				m[index] = (shape, a, v, size, reached, stopped, x1, y1, x2, y2, y+increment, fill)
+				canvas.move(shape, 0, increment)
 				print("acc "+str(a)+" vel "+ str(v))
 			else:
-				m[index] = (shape, a, v, size, True, x1, y1, x2, y2, fill)
-				canvas.move(shape, 0, v*.1)
+				increment = v*.1*distanceMapParameter
+				if (y + increment > 358):
+					increment = 358 - y
+					a = 0
+					v = 0
+					stopped = True
+				m[index] = (shape, a, v, size, True, stopped, x1, y1, x2, y2, y+increment, fill)
+				canvas.move(shape, 0, increment)
 				print("Reached "+str(reached)+ " vel "+ str(v))
 
 
@@ -272,7 +322,8 @@ def stop():
 	time_passed = Label(simulation_frame, text="Time passed : " + str(time))
 	time_passed.grid(row=4, column=0, padx=5, pady=(5, 0), columnspan=2, sticky=W)
 
-	canvas = Canvas(simulation_frame, bg="white")
+	canvas.grid_forget()
+	canvas =  Canvas(simulation_frame, bg="white", height=360)
 	drawCanvas(canvas)
 	canvas.grid(row=5, column=0, padx=5, pady=(5, 0), columnspan=2, sticky=W+E)
 
@@ -298,3 +349,9 @@ window_frame.pack(padx=5, pady=5)
 
 # Starting infinite loop
 root.mainloop()
+
+
+# blue = Color("blue")
+# colors = list(blue.range_to(Color("red"),16))
+# for color in colors:
+# 	print(color.hex)	
