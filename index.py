@@ -1,13 +1,15 @@
 from tkinter import *
+from tkinter import messagebox
 import time as tm
 
 # Initialising main window
 root = Tk()
 root.resizable(0, 0)
 
-global speedEntry, distanceEntry, materialDensity, mediumDensity, mediumViscosity, time, s_label, d_label, start_button, pause_button, stop_button 
+global speedEntry, distanceEntry, materialDensityEntry, mediumDensityEntry, mediumViscosityEntry, time, s_label, d_label, start_button, pause_button, stop_button 
 
-speedEntry, distanceEntry, time, materialDensity, mediumDensity, mediumViscosity = 1, 0, 0, 0, 0, 0
+speedEntry, distanceEntry, time, materialDensityEntry, mediumDensityEntry, mediumViscosityEntry = 1, 0.0, 0.0, 0.0, 0.0, 0.0
+sizeRange = [0.0, 0.0]
 
 run=False
 
@@ -29,17 +31,20 @@ simulation_frame = LabelFrame(window_frame, text="Simulation")
 sp = Label(simulation_frame, text="Selected Parameters")
 s_label = Label(simulation_frame, text="Speed : " + str(speedEntry) + "x", width=15, anchor=W)
 d_label = Label(simulation_frame, text="Distance Mapped : " + str(distanceEntry), width=25, anchor=E)
-mt_label = Label(simulation_frame, text="Material Density : " + str(materialDensity), width=25, anchor=W)
-md_label = Label(simulation_frame, text="Medium Density : " + str(mediumDensity), width=25, anchor=E)
-v_label = Label(simulation_frame, text="Medium Viscosity : " + str(mediumViscosity), width=25, anchor=W)
+mt_label = Label(simulation_frame, text="Material Density : " + str(materialDensityEntry), width=25, anchor=W)
+md_label = Label(simulation_frame, text="Medium Density : " + str(mediumDensityEntry), width=25, anchor=E)
+v_label = Label(simulation_frame, text="Medium Viscosity : " + str(mediumViscosityEntry), width=25, anchor=W)
+sz_label = Label(simulation_frame, text="Size range : " + str(sizeRange[0])+ "μm to " + str(sizeRange[1]) + "μm", width=25, anchor=E)
 time_passed = Label(simulation_frame, text="Time passed : " + str(time))
 
 def drawCanvas(canvas):
-	global m1
-	canvas.create_rectangle(125, 264, 290, 30, width=3, outline="#3c5396", fill="#b8c9fc")
-	m1 = canvas.create_oval(128, 33, 138, 43, fill="red")	
+	global m1, m
+	canvas.create_rectangle(125, 358, 290, 30, width=3, outline="#3c5396", fill="#b8c9fc")
+	m1 = canvas.create_oval(128, 33, 138, 43, fill="red")
+	# (m1, a, v, reached, x1, y1, x2, y2, fill)
+	m = [(m1, 0.0, 0.0, sizeRange[0], False, 128, 33, 138, 43, "red")]
 
-canvas = Canvas(simulation_frame, bg="white")
+canvas = Canvas(simulation_frame, bg="white", height=360)
 drawCanvas(canvas)
 
 sp.grid(row=0, column=0, columnspan=2)
@@ -48,13 +53,15 @@ d_label.grid(row=1, column=1, padx=(5, 5), columnspan=1, sticky=E)
 mt_label.grid(row=2, column=0, padx=(5, 5), pady=(5, 0), columnspan=1, sticky=W)
 md_label.grid(row=2, column=1, padx=(5, 5), pady=(5, 0), columnspan=1, sticky=E)
 v_label.grid(row=3, column=0, padx=(5, 5), pady=(5, 0), columnspan=1, sticky=W)
+sz_label.grid(row=3, column=1, padx=(5, 5), pady=(5, 0), columnspan=1, sticky=E)
 time_passed.grid(row=4, column=0, padx=5, pady=(5, 0), columnspan=2, sticky=W)
-canvas.grid(row=5, column=0, padx=5, pady=(5, 0), columnspan=2, sticky=W+E)
+canvas.grid(row=5, column=0, rowspan=2, padx=5, pady=(5, 0), columnspan=2, sticky=W+E)
 # Frame holding the section that takes input
 control_frame = LabelFrame(window_frame, text="Controls")
 
 # Speed Frame
 def setSpeed(speed):
+	global speedEntry
 	speedEntry = speed
 	speedEntry = speedEntry[:-1]
 	s_label = Label(simulation_frame, text="Speed : " + str(speedEntry) + "x", width=15, anchor=W)
@@ -75,7 +82,8 @@ speed_frame.grid(row=0, column=0, padx=10, pady=(10, 5), sticky=E)
 
 # Distance Frame
 def setMapping(distance):
-	distanceEntry = distance
+	global distanceEntry
+	distanceEntry = float(distance)
 	d_label = Label(simulation_frame, text="Distance Mapped : " + str(distanceEntry), width=25, anchor=E)
 	d_label.grid(row=1, column=1, padx=(5, 5), columnspan=1, sticky=E)
 
@@ -94,8 +102,9 @@ distance_frame.grid(row=1, column=0, padx=10, pady=(5, 10), sticky=E)
 
 # Material Density Frame
 def setMaterialDensity(density):
-	materialDensity = density
-	mt_label = Label(simulation_frame, text="Material Density : " + str(materialDensity), width=25, anchor=W)
+	global materialDensityEntry
+	materialDensityEntry = float(density)
+	mt_label = Label(simulation_frame, text="Material Density : " + str(materialDensityEntry), width=25, anchor=W)
 	mt_label.grid(row=2, column=0, padx=(5, 5), pady=(5, 0), columnspan=1, sticky=W)
 	
 materialDensity_frame = Frame(control_frame)
@@ -113,8 +122,9 @@ materialDensity_frame.grid(row=2, column=0, padx=10, pady=(5, 10), sticky=E)
 
 # Medium Density Frame
 def setMediumDensity(density):
-	mediumDensity = density
-	md_label = Label(simulation_frame, text="Medium Density : " + str(mediumDensity), width=25, anchor=E)
+	global mediumDensityEntry
+	mediumDensityEntry = float(density)
+	md_label = Label(simulation_frame, text="Medium Density : " + str(mediumDensityEntry), width=25, anchor=E)
 	md_label.grid(row=2, column=1, padx=(5, 5), pady=(5, 0), columnspan=1, sticky=E)
 
 mediumDensity_frame = Frame(control_frame)
@@ -132,8 +142,9 @@ mediumDensity_frame.grid(row=3, column=0, padx=10, pady=(5, 10), sticky=E)
 
 # Medium Viscosity Frame
 def setMediumViscosity(viscosity):
-	mediumViscosity = viscosity
-	v_label = Label(simulation_frame, text="Medium Viscosity : " + str(mediumViscosity), width=25, anchor=W)
+	global mediumViscosityEntry
+	mediumViscosityEntry = float(viscosity)
+	v_label = Label(simulation_frame, text="Medium Viscosity : " + str(mediumViscosityEntry), width=25, anchor=W)
 	v_label.grid(row=3, column=0, padx=(5, 5), pady=(5, 0), columnspan=1, sticky=W)
 	
 mediumViscosity_frame = Frame(control_frame)
@@ -149,9 +160,54 @@ b_mediumViscosity.grid(row=1, column=1, sticky=E, pady=(5, 0))
 
 mediumViscosity_frame.grid(row=4, column=0, padx=10, pady=(5, 10), sticky=E)
 
+# Particle size range Frame
+def setSizeRange(r1, r2):
+	global sizeRange, m
+	sizeRange = [float(r1), float(r2)]
+	for index, (shape, a, v, size, reached, x1, y1, x2, y2, fill) in enumerate(m):
+		m[index] = (shape, a, v, sizeRange[0], reached, x1, y1, x2, y2, fill)
+	sz_label = Label(simulation_frame, text="Size range : " + str(sizeRange[0])+ "μm to " + str(sizeRange[1]) + "μm", width=25, anchor=E)
+	sz_label.grid(row=3, column=1, padx=(5, 5), pady=(5, 0), columnspan=1, sticky=E)
+	
+sizeRange_frame = Frame(control_frame)
+sizeRange_label = Label(sizeRange_frame, text="Size Range: ")
+sizeRange_label_2 = Label(sizeRange_frame, text=" : ")
+sizeRangeInitial = Entry(sizeRange_frame, width=10)
+sizeRangeFinal = Entry(sizeRange_frame, width=10)
+b_sizeRange = Button(sizeRange_frame, text="Set Size Range", command=lambda:setSizeRange(sizeRangeInitial.get(), sizeRangeFinal.get()))
+
+# mediumViscosity.insert(0, "eg: 1x")
+
+sizeRange_label.grid(row=0, column=0)
+sizeRangeInitial.grid(row=0, column=1, sticky=E)
+sizeRange_label_2.grid(row=0, column=2, sticky=E)
+sizeRangeFinal.grid(row=0, column=3, sticky=E)
+b_sizeRange.grid(row=1, column=0, columnspan=4, sticky=E, pady=(5, 0))
+
+sizeRange_frame.grid(row=5, column=0, padx=10, pady=(5, 10), sticky=E)
+
 # Buttons
 
 control_buttons_frame = Frame(control_frame)
+
+def calculateNextMove():
+	global time, time_passed, canvas, m1, m, mediumDensityEntry, materialDensityEntry, mediumViscosityEntry
+	# m = [(0, 0, False, 128, 33, 138, 43, "red")]
+	for index, (shape, a, v, size, reached, x1, y1, x2, y2, fill) in enumerate(m):
+		if reached:
+			canvas.move(shape, 0, v*.1)
+		else:
+			a  = 9.8 - ((9.8*mediumDensityEntry)/materialDensityEntry) - ((18*v*mediumViscosityEntry)/(materialDensityEntry*size*size))
+			if a>0:
+				v = v + a*.1
+				m[index] = (shape, a, v, size, reached, x1, y1, x2, y2, fill)
+				canvas.move(shape, 0, v*.1)
+				print("acc "+str(a)+" vel "+ str(v))
+			else:
+				m[index] = (shape, a, v, size, True, x1, y1, x2, y2, fill)
+				canvas.move(shape, 0, v*.1)
+				print("Reached "+str(reached)+ " vel "+ str(v))
+
 
 def startSimulation():
 	root.update()
@@ -159,7 +215,8 @@ def startSimulation():
 	run=True
 	while(run):
 		time = time + .1
-		canvas.move(m1, 0, 1)
+		calculateNextMove()
+		# canvas.move(m1, 0, 1)
 		t = str(time)
 		time_passed.grid_forget()
 		time_passed = Label(simulation_frame, text="Time passed : " + str(t[0:t.index(".")+1]+t[t.index(".")+1:t.index(".")+2]))
@@ -170,7 +227,12 @@ def startSimulation():
 
 
 def start():
-	global start_button
+	global start_button, materialDensityEntry, mediumDensityEntry, mediumViscosityEntry, sizeRange, distanceEntry
+	# Checks all entries are received or not	 
+	if not(distanceEntry and materialDensityEntry and mediumDensityEntry and mediumViscosityEntry and sizeRange[0] and sizeRange[1]):
+		messagebox.showerror("Empty Entry", "Please fill all entries and press corresponding set button. Do cross check in Selected Parameters section on the left")
+		return
+
 	start_button.grid_forget()
 	start_button = Button(control_buttons_frame, text="Start", command=start, state=DISABLED)
 	pause_button = Button(control_buttons_frame, text="Pause", command=pause, state=NORMAL)
@@ -222,7 +284,7 @@ start_button.grid(row=0, column=0)
 pause_button.grid(row=0, column=1)
 stop_button.grid(row=0, column=2)
 
-control_buttons_frame.grid(row=5, column=0, padx=10, pady=(5, 10))
+control_buttons_frame.grid(row=6, column=0, padx=10, pady=(5, 10))
 
 
 
