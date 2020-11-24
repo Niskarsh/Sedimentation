@@ -350,8 +350,3 @@ window_frame.pack(padx=5, pady=5)
 # Starting infinite loop
 root.mainloop()
 
-
-# blue = Color("blue")
-# colors = list(blue.range_to(Color("red"),16))
-# for color in colors:
-# 	print(color.hex)	
